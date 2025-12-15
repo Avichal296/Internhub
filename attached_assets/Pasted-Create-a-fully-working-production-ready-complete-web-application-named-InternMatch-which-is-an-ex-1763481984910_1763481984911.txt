@@ -1,0 +1,279 @@
+Create a fully working, production-ready, complete web application named InternMatch, which is an exact functional and UI/UX clone of Internshala.com.
+Build everything inside a single Replit project using the following stack:
+
+Next.js 14 (app router)
+
+Supabase (database + storage)
+
+Firebase Authentication
+
+Tailwind CSS + ShadCN UI
+
+TypeScript
+
+No fake data — pull everything from Supabase tables
+
+Auto-generate all Supabase tables and SQL
+
+I will provide Firebase keys + Supabase URL + Supabase anon/service key.
+
+1. Project Architecture (Mandatory)
+
+Create the following folders:
+
+/app
+  /(public-pages)
+  /(student)
+  /(recruiter)
+  /(admin)
+/components
+/lib
+  supabase.ts
+  firebase.ts
+  auth.ts
+  utils.ts
+/styles
+/schemas
+/sql
+
+
+Use React Server Components by default.
+
+2. Firebase Auth Requirements
+
+Implement:
+
+Email/password signup & login
+
+OTP email verification
+
+Role-based routing
+
+student
+
+recruiter
+
+admin
+
+Firebase session persistence in Next.js via middleware
+
+A hook: useFirebaseUser()
+
+A server utility: getCurrentUser()
+
+Store user roles inside Supabase (not Firebase).
+
+3. Supabase (Database + Storage)
+
+Replit should generate SQL and create tables automatically.
+
+TABLES TO CREATE:
+users
+id (uuid, primary key, matches Firebase UID)
+full_name text
+email text
+role text CHECK ('student' | 'recruiter' | 'admin')
+phone text
+bio text
+education jsonb
+skills text[]
+resume_url text
+created_at timestamptz default now()
+
+companies
+id bigint generated always as identity primary key
+recruiter_id uuid references users(id)
+company_name text
+description text
+website text
+logo_url text
+created_at timestamptz default now()
+
+internships
+id bigint generated always as identity primary key
+company_id bigint references companies(id)
+title text
+category text
+description text
+responsibilities text
+stipend_min integer
+stipend_max integer
+location text
+is_wfh boolean
+duration text
+openings integer
+perks text
+skills_required text[]
+status text CHECK ('pending' | 'approved' | 'rejected')
+created_at timestamptz default now()
+
+applications
+id bigint generated always as identity primary key
+internship_id bigint references internships(id)
+user_id uuid references users(id)
+answers jsonb
+status text CHECK ('applied','selected','rejected')
+applied_at timestamptz default now()
+
+saved_internships
+user_id uuid references users(id)
+internship_id bigint references internships(id)
+PRIMARY KEY (user_id, internship_id)
+
+notifications
+id bigint generated always as identity primary key
+user_id uuid references users(id)
+title text
+message text
+read boolean default false
+created_at timestamptz default now()
+
+4. Mandatory RLS Policies
+
+Replit should generate RLS policies:
+
+Student:
+
+Can read all approved internships
+
+Can view/edit only their own profile
+
+Can apply only once per internship
+
+Recruiter:
+
+Can manage their own company postings
+
+Can view applicants for their posts
+
+Admin:
+
+Full access
+
+Can approve/reject internship posts and recruiters
+
+5. UI/UX Requirements (Exact Clone of Internshala)
+
+Recreate the entire Internshala website:
+
+Public UI
+
+Homepage with:
+
+Search bar
+
+Category filters
+
+WFH toggle
+
+Trending internships
+
+Internship listing page
+
+Internship detail page
+
+Student Dashboard
+
+Profile page (education, skills, resume upload)
+
+Applied internships
+
+Saved internships
+
+Notification center
+
+Recruiter Dashboard
+
+Company profile builder
+
+Post Internship form
+
+Manage posted internships
+
+Applicant viewer (with resume preview)
+
+Admin Dashboard
+
+Approve/reject:
+
+recruiters
+
+internships
+
+System analytics
+
+Flagged content reviewer
+
+6. Functional Requirements
+Search Engine (Supabase SQL)
+
+Profile filter
+
+Location filter
+
+Stipend range
+
+Duration
+
+Start date
+
+Skills
+
+Sorting: newest, stipend high→low
+
+Internship Details
+
+Company info
+
+Responsibilities
+
+Stipend
+
+Duration
+
+Skills
+
+Apply form (text questions)
+
+Applications
+
+Students can apply
+
+Recruiters can review applicants
+
+Status update (selected/rejected)
+
+Resume Upload
+
+Upload to Supabase Storage
+
+Generate file URL
+
+Attach resume to application
+
+7. No Fake Data Rule
+
+All pages must fetch ONLY real data from Supabase.
+
+No placeholders, no mock JSON, no dummy content.
+
+If a section has no data, display “No items found”.
+
+8. Deliverables from Replit AI
+
+Replit must generate:
+
+1. Full Next.js codebase
+2. All pages + components
+3. All SQL migrations
+4. Supabase client setup
+5. Firebase auth integration
+6. RLS policies
+7. Tailwind + ShadCN setup
+8. Full working student, recruiter, admin dashboards
+9. API routes (server actions)
+10. Deployment instructions
+9. Build the Entire InternMatch Platform
+
+Build the complete system according to the above specs.
+This must be a production-grade Internshala clone with all real functionality.

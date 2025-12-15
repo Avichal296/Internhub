@@ -1,0 +1,198 @@
+Build a complete full-stack web application named InternMatch, which is an exact feature-by-feature, UI-by-UI clone of Internshala.com.
+
+Use the following stack, even if it requires BEST_EFFORT_FALLBACK:
+
+Next.js 14 (App Router + React Server Components)
+
+Tailwind CSS + ShadCN UI
+
+Supabase (Database + Storage)
+
+Firebase Authentication (Email/Password + OTP Email Verification)
+
+TypeScript
+
+I will manually provide:
+
+Firebase API keys
+
+Supabase URL + anon + service key
+
+You must generate the entire codebase and the complete structure.
+
+1. Core Requirement
+
+Build InternMatch as a production-grade Internshala clone, including:
+
+Student Features
+
+Home page with search bar, filters, cards
+
+Internship listing page with real-time filters (role, city, stipend range, duration, skills, WFH)
+
+Internship detail page
+
+Apply page with custom questions
+
+Student dashboard:
+
+Profile (education, skills, resume)
+
+Applied internships
+
+Saved internships
+
+Notifications center
+
+Recruiter Features
+
+Recruiter signup/login (Firebase)
+
+Company profile builder
+
+Post internship job form
+
+Manage posted internships
+
+View applicants
+
+Update application status
+
+Admin Features
+
+Admin login (Firebase auth + role check)
+
+Approve/reject recruiters
+
+Approve/reject internship postings
+
+Remove fake or duplicate posts
+
+View analytics dashboard
+
+2. Database (Supabase)
+
+Auto-generate SQL and create all tables:
+
+users (linked to Firebase UID)
+id uuid primary key
+full_name text
+email text
+role text
+phone text
+bio text
+education jsonb
+skills text[]
+resume_url text
+created_at timestamp
+
+companies
+internships
+applications
+saved_internships
+notifications
+
+(RLS policies must also be generated.)
+
+3. Firebase Authentication
+
+Implement:
+
+Email/password login
+
+OTP email verification
+
+Role-based access:
+
+student
+
+recruiter
+
+admin
+
+Use middleware to protect routes.
+
+4. UI/UX
+
+Recreate Internshala’s layout exactly, including:
+
+Navigation bar
+
+Filters sidebar
+
+Internship cards
+
+Dashboard sidebar
+
+Clean typography
+
+Mobile responsiveness
+
+Use:
+
+Tailwind
+
+ShadCN components
+
+5. Functional Requirements
+
+Search engine using Supabase SQL filters
+
+Sorting + pagination
+
+Resume uploader (Supabase storage)
+
+Apply form using server actions
+
+Recruiter review panel
+
+Admin approval system
+
+Notification system
+
+No fake data — everything must come from Supabase tables
+
+6. Deliverables (Replit must generate)
+Provide:
+
+Full Next.js codebase
+
+Complete folder structure
+
+All React components
+
+Supabase client configuration
+
+Firebase auth integration
+
+Server Actions for all CRUD operations
+
+SQL schema + migrations
+
+Middleware for route protection
+
+Tailwind + ShadCN setup
+
+Admin dashboard
+
+Recruiter dashboard
+
+Student dashboard
+
+Deployment instructions
+
+7. Final Required Behavior
+
+Do NOT use any mock or placeholder data
+
+Fetch everything from Supabase
+
+Ensure clean modular code
+
+Make the project ready for production
+
+Implement all user roles
+
+Copy Internshala’s UX flow exactly
+
+Build the complete InternMatch platform exactly according to these specifications.
