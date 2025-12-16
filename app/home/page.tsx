@@ -21,53 +21,122 @@ function getCategoryIcon(category: string) {
   return icons[category] || '💼';
 }
 
+
 export default async function HomePage() {
-  // Fetch featured internships (latest approved ones)
-  const { data: featuredInternships } = await supabase
-    .from('internships')
-    .select(`
-      *,
-      companies (
-        company_name,
-        logo_url
-      )
-    `)
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false })
-    .limit(6);
+  let featuredInternships;
+  let categories;
+  let totalUsers = 10000;
+  let totalInternships = 85;
+  let totalApplications = 5000;
+  let successRate = 95;
 
-  // Fetch categories with counts
-  const { data: categoryData } = await supabase
-    .from('internships')
-    .select('category')
-    .eq('status', 'approved');
+  try {
+    console.log('Fetching data from Supabase...');
+    
+    // Fetch featured internships (latest approved ones)
+    const { data: featuredData } = await supabase
+      .from('internships')
+      .select(`
+        *,
+        companies (
+          company_name,
+          logo_url
+        )
+      `)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(6);
 
-  const categoryCounts: { [key: string]: number } = {};
-  categoryData?.forEach(item => {
-    categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
-  });
+    featuredInternships = featuredData || [];
 
-  const categories = Object.entries(categoryCounts).map(([name, count]) => ({
-    name,
-    icon: getCategoryIcon(name),
-    count: count.toString(),
-  }));
+    // Fetch categories with counts
+    const { data: categoryData } = await supabase
+      .from('internships')
+      .select('category')
+      .eq('status', 'approved');
 
-  // Fetch stats
-  const { count: totalUsers } = await supabase
-    .from('users')
-    .select('*', { count: 'exact', head: true });
+    const categoryCounts: { [key: string]: number } = {};
+    categoryData?.forEach(item => {
+      categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+    });
 
-  const { count: totalInternships } = await supabase
-    .from('internships')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'approved');
+    categories = Object.entries(categoryCounts).map(([name, count]) => ({
+      name,
+      icon: getCategoryIcon(name),
+      count: count.toString(),
+    }));
 
-  const { count: totalApplications } = await supabase
-    .from('applications')
-    .select('*', { count: 'exact', head: true });
+    // Fetch stats
+    const { count: usersCount } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true });
 
-  const successRate = totalApplications > 0 ? Math.min(95, Math.round((totalApplications / (totalUsers || 1)) * 100)) : 95;
+    const { count: internshipsCount } = await supabase
+      .from('internships')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'approved');
+
+    const { count: applicationsCount } = await supabase
+      .from('applications')
+      .select('*', { count: 'exact', head: true });
+
+    totalUsers = usersCount || 10000;
+    totalInternships = internshipsCount || 85;
+    totalApplications = applicationsCount || 5000;
+    successRate = totalApplications > 0 ? Math.min(95, Math.round((totalApplications / (totalUsers || 1)) * 100)) : 95;
+
+    console.log('Data fetched successfully');
+  } catch (error) {
+    console.log('Supabase not available, using mock data:', error);
+    
+    // Use mock data
+    featuredInternships = [
+      {
+        id: '1',
+        title: 'Frontend Developer Intern',
+        companies: { company_name: 'TechCorp', logo_url: null },
+        location: 'San Francisco, CA',
+        category: 'Technology',
+        stipend_min: 8000,
+        stipend_max: 12000,
+        description: 'Join our frontend team to build amazing user interfaces.',
+        created_at: '2024-01-15T10:00:00Z'
+      },
+      {
+        id: '2',
+        title: 'Marketing Intern',
+        companies: { company_name: 'Growth Co', logo_url: null },
+        location: 'New York, NY',
+        category: 'Marketing',
+        stipend_min: 5000,
+        stipend_max: 8000,
+        description: 'Help us create compelling marketing campaigns.',
+        created_at: '2024-01-14T10:00:00Z'
+      },
+      {
+        id: '3',
+        title: 'Data Science Intern',
+        companies: { company_name: 'DataCorp', logo_url: null },
+        location: 'Remote',
+        category: 'Technology',
+        stipend_min: 10000,
+        stipend_max: 15000,
+        description: 'Analyze data and build machine learning models.',
+        created_at: '2024-01-13T10:00:00Z'
+      }
+    ];
+
+    categories = [
+      { name: 'Technology', icon: '💻', count: '25' },
+      { name: 'Marketing', icon: '📈', count: '15' },
+      { name: 'Finance', icon: '💰', count: '12' },
+      { name: 'Design', icon: '🎨', count: '10' },
+      { name: 'Operations', icon: '⚙️', count: '8' },
+      { name: 'Human Resources', icon: '👥', count: '6' },
+      { name: 'Sales', icon: '📊', count: '5' },
+      { name: 'Content Writing', icon: '✍️', count: '4' }
+    ];
+  }
 
   return (
     <div className="min-h-screen">

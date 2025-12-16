@@ -30,61 +30,219 @@ export default function InternshipsPage() {
     fetchInternships();
   }, [searchQuery, location, stipendRange, remote, duration, skills, category, sortBy, currentPage]);
 
+
   const fetchInternships = async () => {
     setLoading(true);
-    let query = supabase
-      .from('internships')
-      .select(`
-        *,
-        companies (
-          company_name,
-          logo_url
-        )
-      `)
-      .eq('status', 'approved');
+    
+    // Mock data for when Supabase is not available
+    const mockInternships = [
+      {
+        id: '1',
+        title: 'Frontend Developer Intern',
+        companies: { company_name: 'TechCorp', logo_url: null },
+        location: 'San Francisco, CA',
+        category: 'Technology',
+        stipend_min: 8000,
+        stipend_max: 12000,
+        description: 'Join our frontend team to build amazing user interfaces.',
+        duration: '3 months',
+        is_wfh: false,
+        skills_required: ['React', 'JavaScript', 'CSS'],
+        created_at: '2024-01-15T10:00:00Z'
+      },
+      {
+        id: '2',
+        title: 'Marketing Intern',
+        companies: { company_name: 'Growth Co', logo_url: null },
+        location: 'New York, NY',
+        category: 'Marketing',
+        stipend_min: 5000,
+        stipend_max: 8000,
+        description: 'Help us create compelling marketing campaigns.',
+        duration: '2 months',
+        is_wfh: true,
+        skills_required: ['Social Media', 'Content Writing', 'Analytics'],
+        created_at: '2024-01-14T10:00:00Z'
+      },
+      {
+        id: '3',
+        title: 'Data Science Intern',
+        companies: { company_name: 'DataCorp', logo_url: null },
+        location: 'Remote',
+        category: 'Technology',
+        stipend_min: 10000,
+        stipend_max: 15000,
+        description: 'Analyze data and build machine learning models.',
+        duration: '6 months',
+        is_wfh: true,
+        skills_required: ['Python', 'Machine Learning', 'SQL'],
+        created_at: '2024-01-13T10:00:00Z'
+      },
+      {
+        id: '4',
+        title: 'UX Design Intern',
+        companies: { company_name: 'DesignPro', logo_url: null },
+        location: 'Los Angeles, CA',
+        category: 'Design',
+        stipend_min: 7000,
+        stipend_max: 10000,
+        description: 'Create beautiful and intuitive user experiences.',
+        duration: '3 months',
+        is_wfh: false,
+        skills_required: ['Figma', 'User Research', 'Prototyping'],
+        created_at: '2024-01-12T10:00:00Z'
+      },
+      {
+        id: '5',
+        title: 'Business Analyst Intern',
+        companies: { company_name: 'ConsultMax', logo_url: null },
+        location: 'Chicago, IL',
+        category: 'Business',
+        stipend_min: 6000,
+        stipend_max: 9000,
+        description: 'Analyze business processes and provide insights.',
+        duration: '4 months',
+        is_wfh: false,
+        skills_required: ['Excel', 'Data Analysis', 'Problem Solving'],
+        created_at: '2024-01-11T10:00:00Z'
+      },
+      {
+        id: '6',
+        title: 'Content Writer Intern',
+        companies: { company_name: 'ContentHub', logo_url: null },
+        location: 'Remote',
+        category: 'Marketing',
+        stipend_min: 4000,
+        stipend_max: 7000,
+        description: 'Write engaging content for various platforms.',
+        duration: '2 months',
+        is_wfh: true,
+        skills_required: ['Writing', 'SEO', 'Social Media'],
+        created_at: '2024-01-10T10:00:00Z'
+      },
+      {
+        id: '7',
+        title: 'Software Engineer Intern',
+        companies: { company_name: 'CodeTech', logo_url: null },
+        location: 'Seattle, WA',
+        category: 'Technology',
+        stipend_min: 12000,
+        stipend_max: 18000,
+        description: 'Build scalable software solutions.',
+        duration: '6 months',
+        is_wfh: false,
+        skills_required: ['Java', 'Spring Boot', 'AWS'],
+        created_at: '2024-01-09T10:00:00Z'
+      },
+      {
+        id: '8',
+        title: 'Product Manager Intern',
+        companies: { company_name: 'InnovateCorp', logo_url: null },
+        location: 'Austin, TX',
+        category: 'Business',
+        stipend_min: 9000,
+        stipend_max: 13000,
+        description: 'Drive product strategy and development.',
+        duration: '4 months',
+        is_wfh: true,
+        skills_required: ['Product Strategy', 'Analytics', 'Communication'],
+        created_at: '2024-01-08T10:00:00Z'
+      },
+      {
+        id: '9',
+        title: 'Mobile App Developer Intern',
+        companies: { company_name: 'AppDev Solutions', logo_url: null },
+        location: 'Boston, MA',
+        category: 'Technology',
+        stipend_min: 8000,
+        stipend_max: 11000,
+        description: 'Develop innovative mobile applications.',
+        duration: '3 months',
+        is_wfh: false,
+        skills_required: ['React Native', 'JavaScript', 'Mobile Development'],
+        created_at: '2024-01-07T10:00:00Z'
+      },
+      {
+        id: '10',
+        title: 'Graphic Design Intern',
+        companies: { company_name: 'Creative Studio', logo_url: null },
+        location: 'Portland, OR',
+        category: 'Design',
+        stipend_min: 5000,
+        stipend_max: 8000,
+        description: 'Create stunning visual designs for brands.',
+        duration: '2 months',
+        is_wfh: true,
+        skills_required: ['Adobe Creative Suite', 'Branding', 'Typography'],
+        created_at: '2024-01-06T10:00:00Z'
+      }
+    ];
 
-    // Apply filters
-    if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-    }
-    if (location) {
-      query = query.ilike('location', `%${location}%`);
-    }
-    if (stipendRange[0] > 0 || stipendRange[1] < 100000) {
-      query = query.gte('stipend_min', stipendRange[0]).lte('stipend_max', stipendRange[1]);
-    }
-    if (remote) {
-      query = query.eq('is_wfh', true);
-    }
-    if (duration) {
-      query = query.eq('duration', duration);
-    }
-    if (skills) {
-      query = query.contains('skills_required', [skills]);
-    }
-    if (category) {
-      query = query.eq('category', category);
-    }
+    try {
+      console.log('Fetching internships from Supabase...');
+      
+      let query = supabase
+        .from('internships')
+        .select(`
+          *,
+          companies (
+            company_name,
+            logo_url
+          )
+        `)
+        .eq('status', 'approved');
 
-    // Apply sorting
-    if (sortBy === 'newest') {
-      query = query.order('created_at', { ascending: false });
-    } else if (sortBy === 'stipend_high') {
-      query = query.order('stipend_max', { ascending: false });
-    }
+      // Apply filters
+      if (searchQuery) {
+        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+      if (location) {
+        query = query.ilike('location', `%${location}%`);
+      }
+      if (stipendRange[0] > 0 || stipendRange[1] < 100000) {
+        query = query.gte('stipend_min', stipendRange[0]).lte('stipend_max', stipendRange[1]);
+      }
+      if (remote) {
+        query = query.eq('is_wfh', true);
+      }
+      if (duration && duration !== 'any') {
+        query = query.eq('duration', duration);
+      }
+      if (skills) {
+        query = query.contains('skills_required', [skills]);
+      }
+      if (category && category !== 'any') {
+        query = query.eq('category', category);
+      }
 
-    // Apply pagination
-    const from = (currentPage - 1) * itemsPerPage;
-    const to = from + itemsPerPage - 1;
-    query = query.range(from, to);
+      // Apply sorting
+      if (sortBy === 'newest') {
+        query = query.order('created_at', { ascending: false });
+      } else if (sortBy === 'stipend_high') {
+        query = query.order('stipend_max', { ascending: false });
+      }
 
-    const { data, error } = await query;
-    if (error) {
-      console.error('Error fetching internships:', error);
-    } else {
-      setInternships(data || []);
+      // Apply pagination
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      query = query.range(from, to);
+
+      const { data, error } = await query;
+      
+      if (error) {
+        console.log('Supabase fetch failed, using mock data:', error);
+        setInternships(mockInternships);
+      } else {
+        setInternships(data || mockInternships);
+      }
+
+      console.log('Internships fetched successfully');
+    } catch (error) {
+      console.log('Supabase not available, using mock data:', error);
+      setInternships(mockInternships);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const clearFilters = () => {

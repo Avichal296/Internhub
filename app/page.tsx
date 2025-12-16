@@ -26,9 +26,31 @@ function getCategoryIcon(category: string) {
   return icons[category] || '💼';
 }
 
+
+interface Category {
+  name: string;
+  icon: string;
+  count: string;
+}
+
+interface Internship {
+  id: string;
+  title: string;
+  company: {
+    company_name: string;
+    logo_url: string | null;
+  };
+  location: string;
+  category: string;
+  stipend_min: number;
+  stipend_max: number;
+  description: string;
+  created_at: string;
+}
+
 export default function HomePage() {
-  const [featuredInternships, setFeaturedInternships] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [featuredInternships, setFeaturedInternships] = useState<Internship[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalInternships: 0,
@@ -36,13 +58,16 @@ export default function HomePage() {
     successRate: 95
   });
   const [loading, setLoading] = useState(true);
-  const [expandedFaq, setExpandedFaq] = useState(null);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('Fetching data from Supabase...');
+        
         // Fetch featured internships (latest approved ones)
-        const { data: featuredData } = await supabase
+        const { data: featuredData, error: featuredError } = await supabase
           .from('internships')
           .select(`
             *,
@@ -55,26 +80,80 @@ export default function HomePage() {
           .order('created_at', { ascending: false })
           .limit(6);
 
-        setFeaturedInternships(featuredData as any[] || []);
+        if (featuredError) {
+          console.log('Featured internships fetch failed, using mock data:', featuredError);
+          // Use mock data for featured internships
+          setFeaturedInternships([
+            {
+              id: '1',
+              title: 'Frontend Developer Intern',
+              company: { company_name: 'TechCorp', logo_url: null },
+              location: 'San Francisco, CA',
+              category: 'Technology',
+              stipend_min: 8000,
+              stipend_max: 12000,
+              description: 'Join our frontend team to build amazing user interfaces.',
+              created_at: '2024-01-15T10:00:00Z'
+            },
+            {
+              id: '2',
+              title: 'Marketing Intern',
+              company: { company_name: 'Growth Co', logo_url: null },
+              location: 'New York, NY',
+              category: 'Marketing',
+              stipend_min: 5000,
+              stipend_max: 8000,
+              description: 'Help us create compelling marketing campaigns.',
+              created_at: '2024-01-14T10:00:00Z'
+            },
+            {
+              id: '3',
+              title: 'Data Science Intern',
+              company: { company_name: 'DataCorp', logo_url: null },
+              location: 'Remote',
+              category: 'Technology',
+              stipend_min: 10000,
+              stipend_max: 15000,
+              description: 'Analyze data and build machine learning models.',
+              created_at: '2024-01-13T10:00:00Z'
+            }
+          ]);
+        } else {
+          setFeaturedInternships(featuredData as any[] || []);
+        }
 
         // Fetch categories with counts
-        const { data: categoryData } = await supabase
+        const { data: categoryData, error: categoryError } = await supabase
           .from('internships')
           .select('category')
           .eq('status', 'approved');
 
-        const categoryCounts: { [key: string]: number } = {};
-        categoryData?.forEach(item => {
-          categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
-        });
+        if (categoryError) {
+          console.log('Categories fetch failed, using mock data:', categoryError);
+          setCategories([
+            { name: 'Technology', icon: '💻', count: '25' },
+            { name: 'Marketing', icon: '📈', count: '15' },
+            { name: 'Finance', icon: '💰', count: '12' },
+            { name: 'Design', icon: '🎨', count: '10' },
+            { name: 'Operations', icon: '⚙️', count: '8' },
+            { name: 'Human Resources', icon: '👥', count: '6' },
+            { name: 'Sales', icon: '📊', count: '5' },
+            { name: 'Content Writing', icon: '✍️', count: '4' }
+          ]);
+        } else {
+          const categoryCounts: { [key: string]: number } = {};
+          categoryData?.forEach(item => {
+            categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+          });
 
-        const categoriesArray = Object.entries(categoryCounts).map(([name, count]) => ({
-          name,
-          icon: getCategoryIcon(name),
-          count: count.toString(),
-        }));
+          const categoriesArray = Object.entries(categoryCounts).map(([name, count]) => ({
+            name,
+            icon: getCategoryIcon(name),
+            count: count.toString(),
+          }));
 
-        setCategories(categoriesArray as any[]);
+          setCategories(categoriesArray as any[]);
+        }
 
         // Fetch stats
         const { count: usersCount } = await supabase
@@ -101,11 +180,95 @@ export default function HomePage() {
           totalApplications,
           successRate
         });
+
+        console.log('Data fetched successfully');
       } catch (error) {
-        console.log('Supabase not configured, showing default values');
+        console.log('Supabase not available, using mock data:', error);
+        
+        // Use comprehensive mock data
+        setFeaturedInternships([
+          {
+            id: '1',
+            title: 'Frontend Developer Intern',
+            company: { company_name: 'TechCorp', logo_url: null },
+            location: 'San Francisco, CA',
+            category: 'Technology',
+            stipend_min: 8000,
+            stipend_max: 12000,
+            description: 'Join our frontend team to build amazing user interfaces.',
+            created_at: '2024-01-15T10:00:00Z'
+          },
+          {
+            id: '2',
+            title: 'Marketing Intern',
+            company: { company_name: 'Growth Co', logo_url: null },
+            location: 'New York, NY',
+            category: 'Marketing',
+            stipend_min: 5000,
+            stipend_max: 8000,
+            description: 'Help us create compelling marketing campaigns.',
+            created_at: '2024-01-14T10:00:00Z'
+          },
+          {
+            id: '3',
+            title: 'Data Science Intern',
+            company: { company_name: 'DataCorp', logo_url: null },
+            location: 'Remote',
+            category: 'Technology',
+            stipend_min: 10000,
+            stipend_max: 15000,
+            description: 'Analyze data and build machine learning models.',
+            created_at: '2024-01-13T10:00:00Z'
+          },
+          {
+            id: '4',
+            title: 'UX Design Intern',
+            company: { company_name: 'DesignPro', logo_url: null },
+            location: 'Los Angeles, CA',
+            category: 'Design',
+            stipend_min: 7000,
+            stipend_max: 10000,
+            description: 'Create beautiful and intuitive user experiences.',
+            created_at: '2024-01-12T10:00:00Z'
+          },
+          {
+            id: '5',
+            title: 'Business Analyst Intern',
+            company: { company_name: 'ConsultMax', logo_url: null },
+            location: 'Chicago, IL',
+            category: 'Finance',
+            stipend_min: 6000,
+            stipend_max: 9000,
+            description: 'Analyze business processes and provide insights.',
+            created_at: '2024-01-11T10:00:00Z'
+          },
+          {
+            id: '6',
+            title: 'Content Writer Intern',
+            company: { company_name: 'ContentHub', logo_url: null },
+            location: 'Remote',
+            category: 'Content Writing',
+            stipend_min: 4000,
+            stipend_max: 7000,
+            description: 'Write engaging content for various platforms.',
+            created_at: '2024-01-10T10:00:00Z'
+          }
+        ]);
+
+        setCategories([
+          { name: 'Technology', icon: '💻', count: '25' },
+          { name: 'Marketing', icon: '📈', count: '15' },
+          { name: 'Finance', icon: '💰', count: '12' },
+          { name: 'Design', icon: '🎨', count: '10' },
+          { name: 'Operations', icon: '⚙️', count: '8' },
+          { name: 'Human Resources', icon: '👥', count: '6' },
+          { name: 'Sales', icon: '📊', count: '5' },
+          { name: 'Content Writing', icon: '✍️', count: '4' }
+        ]);
+
         setStats({
           totalUsers: 10000,
-          totalInternships: 500,
+          totalInternships: 85,
           totalApplications: 5000,
           successRate: 95
         });

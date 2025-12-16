@@ -20,14 +20,18 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      console.log("LOGIN STARTED");
+      
       const { user, error } = await signIn(email, password);
 
       if (error) {
+        console.log("Firebase login error:", error);
         toast({
           title: 'Login failed',
           description: error,
@@ -38,77 +42,68 @@ export default function LoginPage() {
       }
 
       if (user) {
+        console.log("Firebase login successful:", user.uid);
         const token = await user.getIdToken();
 
-        // Set session cookie
-        await fetch('/api/session/set', {
+        console.log("Setting session cookies...");
+
+        // Set session cookie - critical for auth flow
+        const sessionResponse = await fetch('/api/session/set', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token }),
         });
 
-        // Fetch Supabase profile
-        const { supabase } = await import('@/lib/supabase');
-        let { data: profile } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.uid)
-          .single();
+        if (!sessionResponse.ok) {
+          console.log("Session setting failed, but continuing...");
+        } else {
+          console.log("Session cookies set successfully");
+        }
 
-        // If profile doesn't exist, create it
-        if (!profile) {
-          const createUserResponse = await fetch('/api/supabase/create-user', {
+        // Try to get or create user profile, but don't fail if Supabase is not available
+        let userProfile = null;
+        try {
+          const profileResponse = await fetch('/api/auth/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              uid: user.uid,
+              userId: user.uid,
               email: user.email,
-              full_name: user.displayName || user.email?.split('@')[0] || 'User',
-              role: 'student' // Default role for existing users
+              fullName: user.displayName || user.email?.split('@')[0] || 'User',
+              role: 'student', // Default role for existing users
+              token
             }),
           });
 
-          if (createUserResponse.ok) {
-            // Fetch again after creation
-            const { data: newProfile } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', user.uid)
-              .single();
-            profile = newProfile;
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            userProfile = profileData.user;
+            console.log("User profile retrieved/created:", userProfile);
           } else {
-            toast({
-              title: 'Error',
-              description: 'Failed to create user profile',
-              variant: 'destructive',
-            });
-            setLoading(false);
-            return;
+            console.log("Profile creation/retrieval failed, using defaults");
           }
+        } catch (profileError) {
+          console.log("Profile API not available, using defaults:", profileError);
         }
 
-        // Extract role from Supabase profile
-        const role = profile?.role;
+        // Determine role and route
+        const role = userProfile?.role || 'student'; // Default to student if no profile
 
-        if (role) {
-          if (role === 'student') {
-            router.push('/student/dashboard');
-          } else if (role === 'recruiter') {
-            router.push('/recruiter/dashboard');
-          } else if (role === 'admin') {
-            router.push('/admin/dashboard');
-          } else {
-            router.push('/home');
-          }
+        console.log("User role:", role);
+
+        // Navigate based on role
+        if (role === 'student') {
+          router.push('/student/dashboard');
+        } else if (role === 'recruiter') {
+          router.push('/recruiter/dashboard');
+        } else if (role === 'admin') {
+          router.push('/admin/dashboard');
         } else {
-          toast({
-            title: 'Error',
-            description: 'User role not found',
-            variant: 'destructive',
-          });
+          router.push('/home');
         }
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',

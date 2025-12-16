@@ -4,18 +4,25 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapPin, DollarSign, Clock, Building } from 'lucide-react';
 
+
 interface Internship {
-  id: number;
+  id: string | number;
   title: string;
   description: string;
   location: string;
-  stipend: number;
-  duration: string;
-  remote: boolean;
+  stipend?: number;
+  stipend_min?: number;
+  stipend_max?: number;
+  duration?: string;
+  remote?: boolean;
   category: string;
-  skills: string[];
+  skills?: string[];
   created_at: string;
-  recruiter: {
+  company?: {
+    company_name: string;
+    logo_url?: string | null;
+  };
+  recruiter?: {
     id: string;
     name: string;
     company_name: string;
@@ -27,12 +34,18 @@ interface InternshipCardProps {
   internship: Internship;
 }
 
+
 export function InternshipCard({ internship }: InternshipCardProps) {
-  const formatStipend = (stipend: number) => {
-    if (stipend >= 1000) {
-      return `₹${(stipend / 1000).toFixed(1)}k`;
+  // Handle different data structures
+  const companyName = internship.company?.company_name || internship.recruiter?.company_name || 'Company';
+  const companyLogo = internship.company?.logo_url || internship.recruiter?.company_logo;
+  const stipend = internship.stipend || ((internship.stipend_min || 0) + (internship.stipend_max || 0)) / 2;
+
+  const formatStipend = (amount: number) => {
+    if (amount >= 1000) {
+      return `₹${(amount / 1000).toFixed(1)}k`;
     }
-    return `₹${stipend}`;
+    return `₹${amount}`;
   };
 
   const timeAgo = (date: string) => {
@@ -57,13 +70,13 @@ export function InternshipCard({ internship }: InternshipCardProps) {
             </CardTitle>
             <CardDescription className="flex items-center gap-2">
               <Building className="h-4 w-4" />
-              {internship.recruiter.company_name}
+              {companyName}
             </CardDescription>
           </div>
-          {internship.recruiter.company_logo && (
+          {companyLogo && (
             <img
-              src={internship.recruiter.company_logo}
-              alt={internship.recruiter.company_name}
+              src={companyLogo}
+              alt={companyName}
               className="w-12 h-12 rounded-lg object-cover"
             />
           )}
@@ -87,12 +100,12 @@ export function InternshipCard({ internship }: InternshipCardProps) {
 
           <div className="flex items-center gap-2 text-sm">
             <DollarSign className="h-4 w-4 text-gray-500" />
-            <span>{formatStipend(internship.stipend)}/month</span>
+            <span>{formatStipend(stipend)}/month</span>
           </div>
 
           <div className="flex items-center gap-2 text-sm">
             <Clock className="h-4 w-4 text-gray-500" />
-            <span>{internship.duration}</span>
+            <span>{internship.duration || 'Duration not specified'}</span>
           </div>
         </div>
 
